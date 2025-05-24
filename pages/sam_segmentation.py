@@ -1,6 +1,6 @@
 import streamlit as st
 from glob import glob
-from streamlit_image_annotation import detection
+from streamlit_image_annotation2 import detection
 import cv2
 import numpy  as np
 import urllib.request

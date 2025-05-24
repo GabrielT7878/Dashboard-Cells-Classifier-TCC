@@ -11,7 +11,7 @@ from PIL import Image
 import numpy as np
 import matplotlib.pyplot as plt
 from hashlib import md5
-from streamlit_image_annotation import IS_RELEASE
+from streamlit_image_annotation2 import IS_RELEASE
 
 if IS_RELEASE:
     absolute_path = os.path.dirname(os.path.abspath(__file__))

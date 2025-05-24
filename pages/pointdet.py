@@ -1,6 +1,6 @@
 import streamlit as st
 from glob import glob
-from streamlit_image_annotation import pointdet
+from streamlit_image_annotation2 import pointdet
 
 label_list = ['deer', 'human', 'dog', 'penguin', 'framingo', 'teddy bear']
 image_path_list = glob('image/*.jpg')

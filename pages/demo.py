@@ -1,7 +1,7 @@
 import streamlit as st
 from glob import glob
 import pandas as pd
-from streamlit_image_annotation import detection, classification, pointdet
+from streamlit_image_annotation2 import detection, classification, pointdet
 
 mode = st.tabs(["Detection", "Classification", "Point"])
 label_list = ['deer', 'human', 'dog', 'penguin', 'framingo', 'teddy bear']
