@@ -81,15 +81,14 @@ num_page = st.slider('page', 0, len(image_path_list)-1, 0, key='slider')
 
 target_image_path = image_path_list[num_page]
 
-image_size = st.slider('image size', 1, 10, 1, key='image_size_slider')
-
 new_labels = detection(image_path=target_image_path, 
                     bboxes=st.session_state['result_dict'][target_image_path]['bboxes'], 
                     labels=st.session_state['result_dict'][target_image_path]['labels'],
                     line_width=2,
-                    label_list=label_list, use_space=False, key=target_image_path, height=512 * (1 + image_size * 0.1), width=512 * (1 + image_size * 0.1))
+                    label_list=label_list, use_space=False, key=target_image_path, height=512, width=512)
 if new_labels is not None:
     st.session_state['result_dict'][target_image_path]['bboxes'] = [v['bbox'] for v in new_labels]
     st.session_state['result_dict'][target_image_path]['labels'] = [v['label_id'] for v in new_labels]
-    
-st.json(st.session_state['result_dict'])
+
+count_mitotic = [x for x in st.session_state['result_dict'][target_image_path]['labels'] if x != 0]
+st.write(f"Indice Mitotico: {len(count_mitotic)} / {len(st.session_state['result_dict'][target_image_path]['labels'])} = {(len(count_mitotic) / len(st.session_state['result_dict'][target_image_path]['labels'])):.2f}")

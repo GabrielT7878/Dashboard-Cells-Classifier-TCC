@@ -14,6 +14,9 @@ eggs/
 *.egg-info/
 *.egg
 
+node_modules/
+
+
 # Unit test / coverage reports
 .coverage
 .coverage\.*
