@@ -4,7 +4,19 @@ import {
   ComponentProps
 } from "streamlit-component-lib"
 import React, { useEffect, useState } from "react"
-import { ChakraProvider, Select, Box, Spacer, HStack, Center, Button, Text } from '@chakra-ui/react'
+import { 
+  ChakraProvider, 
+  Box, 
+  Spacer, 
+  HStack, 
+  Center, 
+  Button, 
+  Text,
+  RadioGroup,
+  Radio,
+  Stack,
+  Circle
+} from '@chakra-ui/react'
 
 import useImage from 'use-image';
 
@@ -53,20 +65,21 @@ const Detection = ({ args, theme }: ComponentProps) => {
   const [label, setLabel] = useState(label_list[0])
   const [mode, setMode] = React.useState<string>('Transform');
 
-  const handleClassSelectorChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
-    setLabel(event.target.value)
+  const handleClassSelectorChange = (value: string) => {
+    setLabel(value)
     console.log(selectedId)
     if (!(selectedId === null)) {
       const rects = rectangles.slice();
       for (let i = 0; i < rects.length; i++) {
         if (rects[i].id === selectedId) {
-          rects[i].label = event.target.value;
+          rects[i].label = value;
           rects[i].stroke = color_map[rects[i].label]
         }
       }
       setRectangles(rects)
     }
   }
+  
   const [scale, setScale] = useState(1.0)
   useEffect(() => {
     const resizeCanvas = () => {
@@ -120,32 +133,51 @@ const Detection = ({ args, theme }: ComponentProps) => {
             </Box>
             <Spacer />
             <Box>
-              <Text fontSize='sm'>Mode</Text>
-              <Select value={mode} onChange={(e) => { setMode(e.target.value) }}>
-                {['Transform', 'Del'].map(
-                  (m) =>
-                    <option value={m}>{m}</option>
-                )}
-              </Select>
-              <Text fontSize='sm'>Class</Text>
-              <Select value={label} onChange={handleClassSelectorChange}>
-                {label_list.map(
-                  (l) =>
-                    <option value={l}>{l}</option>
-                )
-                }
-              </Select>
+              <Text fontSize='sm' mb={2}>Mode</Text>
+              <RadioGroup value={mode} onChange={setMode}>
+                <Stack direction="column" spacing={2}>
+                  {['Transform', 'Del'].map((m) => (
+                    <Radio key={m} value={m} size="sm">
+                      {m}
+                    </Radio>
+                  ))}
+                </Stack>
+              </RadioGroup>
 
-              <Button onClick={(e) => {
-                const currentBboxValue = rectangles.map((rect, i) => {
-                  return {
-                    bbox: [rect.x, rect.y, rect.width, rect.height],
-                    label_id: label_list.indexOf(rect.label),
-                    label: rect.label
-                  }
-                })
-                Streamlit.setComponentValue(currentBboxValue)
-              }}>Complete</Button>
+              <Text fontSize='sm' mt={4} mb={2}>Class</Text>
+              <RadioGroup value={label} onChange={handleClassSelectorChange}>
+                <Stack direction="column" spacing={2}>
+                  {label_list.map((l) => (
+                    <Radio key={l} value={l} size="sm">
+                      <HStack spacing={2} align="center">
+                        <Circle 
+                          size="12px" 
+                          bg={color_map[l]} 
+                          border="1px solid" 
+                          borderColor="gray.300"
+                        />
+                        <Text fontSize="sm">{l}</Text>
+                      </HStack>
+                    </Radio>
+                  ))}
+                </Stack>
+              </RadioGroup>
+
+              <Button 
+                mt={4}
+                onClick={(e) => {
+                  const currentBboxValue = rectangles.map((rect, i) => {
+                    return {
+                      bbox: [rect.x, rect.y, rect.width, rect.height],
+                      label_id: label_list.indexOf(rect.label),
+                      label: rect.label
+                    }
+                  })
+                  Streamlit.setComponentValue(currentBboxValue)
+                }}
+              >
+                Complete
+              </Button>
             </Box>
           </HStack>
         </Center>
@@ -154,6 +186,5 @@ const Detection = ({ args, theme }: ComponentProps) => {
   )
 
 }
-
 
 export default withStreamlitConnection(Detection)
