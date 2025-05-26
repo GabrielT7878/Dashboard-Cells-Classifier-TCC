@@ -177,7 +177,8 @@ const BBoxCanvas = (props: BBoxCanvasLayerProps) => {
             color: 'white',
             border: 'none',
             borderRadius: '4px',
-            cursor: 'pointer'
+            cursor: 'pointer',
+            width: '90px'
           }}
         >
           {showLabels ? 'Hide Labels' : 'Show Labels'}
@@ -190,7 +191,8 @@ const BBoxCanvas = (props: BBoxCanvasLayerProps) => {
             color: 'white',
             border: 'none',
             borderRadius: '4px',
-            cursor: 'pointer'
+            cursor: 'pointer',
+            width: '90px'
           }}
         >
           Reset

@@ -46,7 +46,7 @@ const BBox = (props: BBoxProps) => {
   return (
     <React.Fragment>
 
-      {moving || <Text text={text} x={rectProps.x * scale + 5} y={rectProps.y * scale + 5} fontSize={5} fill={rectProps.stroke} />}
+      {moving || <Text text={text} x={rectProps.x * scale + 5} y={rectProps.y * scale + 5} fontSize={10} fill={rectProps.stroke} />}
       <Rect
         onClick={onClick}
         ref={shapeRef}

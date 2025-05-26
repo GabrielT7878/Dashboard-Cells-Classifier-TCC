@@ -47,7 +47,8 @@ const Detection = ({ args, theme }: ComponentProps) => {
 
   const params = new URLSearchParams(window.location.search);
   const baseUrl = params.get('streamlitUrl')
-  const [image] = useImage(baseUrl + image_url)
+  console.log(baseUrl + "/../" + image_url)
+  const [image] = useImage(baseUrl + "/../" + image_url)
 
   const [rectangles, setRectangles] = React.useState(
     bbox_info.map((bb, i) => {
