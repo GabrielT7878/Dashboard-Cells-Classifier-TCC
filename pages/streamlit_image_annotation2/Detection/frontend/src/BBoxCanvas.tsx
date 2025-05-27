@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react"
+import React, { useState, useEffect, useRef } from "react"
 import { Layer, Rect, Stage, Image } from 'react-konva';
 import BBox from './BBox'
 import Konva from 'konva';
@@ -17,6 +17,7 @@ export interface BBoxCanvasLayerProps {
   image: any,
   strokeWidth: number
 }
+
 const BBoxCanvas = (props: BBoxCanvasLayerProps) => {
   const {
     rectangles,
@@ -32,20 +33,96 @@ const BBoxCanvas = (props: BBoxCanvasLayerProps) => {
     image,
     strokeWidth
   }: BBoxCanvasLayerProps = props
+
   const [adding, setAdding] = useState<number[] | null>(null)
+  const [stageScale, setStageScale] = useState(1)
+  const [stageX, setStageX] = useState(0)
+  const [stageY, setStageY] = useState(0)
+  const [showLabels, setShowLabels] = useState(true)
+  const stageRef = useRef<Konva.Stage>(null)
+
+  const SCALE_BY = 1.1
+  const MIN_SCALE = 0.1
+  const MAX_SCALE = 5
+
   const checkDeselect = (e: any) => {
     console.log('DOWN')
     if (!(e.target instanceof Konva.Rect)) {
       if (selectedId === null) {
-        if (mode === 'Transform') {
-          const pointer = e.target.getStage().getPointerPosition()
-          setAdding([pointer.x, pointer.y, pointer.x, pointer.y])
+        if (mode === 'Classificar') {
+          const stage = e.target.getStage()
+          const pointer = stage.getPointerPosition()
+          if (!pointer) return
+          // Adjust pointer position for stage transform
+          const adjustedPointer = {
+            x: (pointer.x - stageX) / stageScale,
+            y: (pointer.y - stageY) / stageScale
+          }
+          setAdding([adjustedPointer.x, adjustedPointer.y, adjustedPointer.x, adjustedPointer.y])
         }
       } else {
         setSelectedId(null);
       }
     }
   };
+
+  const handleWheel = (e: any) => {
+    e.evt.preventDefault()
+
+    const stage = stageRef.current
+    if (!stage) return
+
+    const oldScale = stageScale
+    const pointer = stage.getPointerPosition()
+    if (!pointer) return
+
+    const mousePointTo = {
+      x: (pointer.x - stageX) / oldScale,
+      y: (pointer.y - stageY) / oldScale,
+    }
+
+    let direction = e.evt.deltaY > 0 ? -1 : 1
+    
+    // Reverse direction for natural zooming
+    if (e.evt.ctrlKey) {
+      direction = direction * -1
+    }
+
+    const newScale = direction > 0 ? oldScale * SCALE_BY : oldScale / SCALE_BY
+
+    // Clamp scale
+    const clampedScale = Math.max(MIN_SCALE, Math.min(MAX_SCALE, newScale))
+
+    setStageScale(clampedScale)
+
+    const newPos = {
+      x: pointer.x - mousePointTo.x * clampedScale,
+      y: pointer.y - mousePointTo.y * clampedScale,
+    }
+
+    setStageX(newPos.x)
+    setStageY(newPos.y)
+  }
+
+  const resetZoom = () => {
+    setStageScale(1)
+    setStageX(0)
+    setStageY(0)
+  }
+
+  const zoomIn = () => {
+    const newScale = Math.min(MAX_SCALE, stageScale * SCALE_BY)
+    setStageScale(newScale)
+  }
+
+  const zoomOut = () => {
+    const newScale = Math.max(MIN_SCALE, stageScale / SCALE_BY)
+    setStageScale(newScale)
+  }
+
+  const toggleLabels = () => {
+    setShowLabels(!showLabels)
+  }
 
   useEffect(() => {
     const rects = rectangles.slice();
@@ -79,75 +156,150 @@ const BBoxCanvas = (props: BBoxCanvasLayerProps) => {
     }
     console.log(rects)
   }, [rectangles, image_size])
+
   return (
-    <Stage width={image_size[0] * scale} height={image_size[1] * scale}
-      onMouseDown={checkDeselect}
-      onMouseMove={(e: any) => {
-        if (!(adding === null)) {
-          const pointer = e.target.getStage().getPointerPosition()
-          setAdding([adding[0], adding[1], pointer.x, pointer.y])
-        }
-      }}
-      onMouseLeave={(e: any) => {
-        setAdding(null)
-      }}
-      onMouseUp={(e: any) => {
-        if (!(adding === null)) {
-          const rects = rectangles.slice();
-          const new_id = Date.now().toString()
-          rects.push({
-            x: adding[0] / scale,
-            y: adding[1] / scale,
-            width: (adding[2] - adding[0]) / scale,
-            height: (adding[3] - adding[1]) / scale,
-            label: label,
-            stroke: color_map[label],
-            id: new_id
-          })
-          setRectangles(rects);
-          setSelectedId(new_id);
-          setAdding(null)
-        }
+    <div>
+      {/* Zoom Controls */}
+      <div style={{ 
+        position: 'absolute', 
+        top: 10, 
+        right: 5, 
+        zIndex: 1000,
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '5px',
       }}>
-      <Layer>
-        <Image image={image} scaleX={scale} scaleY={scale} />
-      </Layer>
-      <Layer>
-        {rectangles.map((rect, i) => {
-          return (
-            <BBox
-              key={i}
-              rectProps={rect}
-              scale={scale}
-              strokeWidth={strokeWidth}
-              isSelected={mode === 'Transform' && rect.id === selectedId}
-              onClick={() => {
-                if (mode === 'Transform') {
-                  setSelectedId(rect.id);
+        <button 
+          onClick={toggleLabels}
+          style={{
+            padding: '8px 12px',
+            backgroundColor: showLabels ? '#28a745' : '#dc3545',
+            color: 'white',
+            border: 'none',
+            borderRadius: '4px',
+            cursor: 'pointer',
+            width: '90px'
+          }}
+        >
+          {showLabels ? 'Hide Labels' : 'Show Labels'}
+        </button>
+        <button 
+          onClick={resetZoom}
+          style={{
+            padding: '8px 12px',
+            backgroundColor: '#6c757d',
+            color: 'white',
+            border: 'none',
+            borderRadius: '4px',
+            cursor: 'pointer',
+            width: '90px'
+          }}
+        >
+          Reset
+        </button>
+        <div style={{
+          fontSize: '12px',
+          color: '#666',
+          textAlign: 'center'
+        }}>
+          {Math.round(stageScale * 100)}%
+        </div>
+      </div>
+
+      <Stage 
+        width={image_size[0] * scale} 
+        height={image_size[1] * scale}
+        ref={stageRef}
+        scaleX={stageScale}
+        scaleY={stageScale}
+        x={stageX}
+        y={stageY}
+        onWheel={handleWheel}
+        onMouseDown={checkDeselect}
+        onMouseMove={(e: any) => {
+          if (!(adding === null)) {
+            const stage = e.target.getStage()
+            const pointer = stage.getPointerPosition()
+            if (!pointer) return
+            // Adjust pointer position for stage transform
+            const adjustedPointer = {
+              x: (pointer.x - stageX) / stageScale,
+              y: (pointer.y - stageY) / stageScale
+            }
+            setAdding([adding[0], adding[1], adjustedPointer.x, adjustedPointer.y])
+          }
+        }}
+        onMouseLeave={(e: any) => {
+          setAdding(null)
+        }}
+        onMouseUp={(e: any) => {
+          if (!(adding === null)) {
+            const rects = rectangles.slice();
+            const new_id = Date.now().toString()
+            rects.push({
+              x: adding[0] / scale,
+              y: adding[1] / scale,
+              width: (adding[2] - adding[0]) / scale,
+              height: (adding[3] - adding[1]) / scale,
+              label: label,
+              stroke: color_map[label],
+              id: new_id
+            })
+            setRectangles(rects);
+            setSelectedId(new_id);
+            setAdding(null)
+          }
+        }}
+      >
+        <Layer>
+          <Image image={image} scaleX={scale} scaleY={scale} />
+        </Layer>
+        <Layer>
+          {rectangles.map((rect, i) => {
+            return (
+              <BBox
+                key={i}
+                rectProps={rect}
+                scale={scale}
+                strokeWidth={strokeWidth}
+                showLabel={showLabels}
+                isSelected={mode === 'Classificar' && rect.id === selectedId}
+                onClick={() => {
+                  if (mode === 'Classificar') {
+                    setSelectedId(rect.id);
+                    const rects = rectangles.slice();
+                    const lastIndex = rects.length - 1;
+                    const lastItem = rects[lastIndex];
+                    rects[lastIndex] = rects[i];
+                    rects[i] = lastItem;
+                    setRectangles(rects);
+                    setLabel(rect.label)
+                  } else if (mode === 'Deletar') {
+                    const rects = rectangles.slice();
+                    setRectangles(rects.filter((element) => element.id !== rect.id));
+                  }
+                }}
+                onChange={(newAttrs: any) => {
                   const rects = rectangles.slice();
-                  const lastIndex = rects.length - 1;
-                  const lastItem = rects[lastIndex];
-                  rects[lastIndex] = rects[i];
-                  rects[i] = lastItem;
+                  rects[i] = newAttrs;
                   setRectangles(rects);
-                  setLabel(rect.label)
-                } else if (mode === 'Del') {
-                  const rects = rectangles.slice();
-                  setRectangles(rects.filter((element) => element.id !== rect.id));
-                }
-              }}
-              onChange={(newAttrs: any) => {
-                const rects = rectangles.slice();
-                rects[i] = newAttrs;
-                setRectangles(rects);
-              }}
+                }}
+              />
+            );
+          })}
+          {adding !== null && (
+            <Rect 
+              fill={color_map[label] + '4D'} 
+              x={adding[0]} 
+              y={adding[1]} 
+              width={adding[2] - adding[0]} 
+              height={adding[3] - adding[1]} 
             />
-          );
-        })}
-        {adding !== null && <Rect fill={color_map[label] + '4D'} x={adding[0]} y={adding[1]} width={adding[2] - adding[0]} height={adding[3] - adding[1]} />}
-      </Layer></Stage>
+          )}
+        </Layer>
+      </Stage>
+    </div>
   );
 };
-
 
 export default BBoxCanvas;

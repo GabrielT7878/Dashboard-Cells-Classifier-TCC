@@ -17,6 +17,7 @@ export interface BBoxProps {
   onClick: any,
   scale: number,
   strokeWidth: number
+  showLabel: boolean
 }
 const BBox = (props: BBoxProps) => {
   const shapeRef = React.useRef<any>();
@@ -33,11 +34,19 @@ const BBox = (props: BBoxProps) => {
     //}
   }, [isSelected]);
 
+  let text: string
+
+  if (props.showLabel){
+    text = rectProps.label
+  }else{
+    text = " "
+  }
+
 
   return (
     <React.Fragment>
 
-      {moving || <Text text={rectProps.label} x={rectProps.x * scale + 5} y={rectProps.y * scale + 5} fontSize={1} fill={rectProps.stroke} />}
+      {moving || <Text text={text} x={rectProps.x * scale + 5} y={rectProps.y * scale + 5} fontSize={10} fill={rectProps.stroke} />}
       <Rect
         onClick={onClick}
         ref={shapeRef}
