@@ -100,7 +100,7 @@ if 'result_dict' not in st.session_state:
         result_dict[img] = get_bounds(img)
     st.session_state['result_dict'] = result_dict.copy()
 
-num_page = st.slider('imagem', 0, len(image_path_list)-1, 0, key='slider')
+num_page = st.slider('imagem', 0, len(image_path_list), 0, key='slider')
 
 col1, col2 = st.columns(2)
 
