@@ -49,7 +49,7 @@ const BBoxCanvas = (props: BBoxCanvasLayerProps) => {
     console.log('DOWN')
     if (!(e.target instanceof Konva.Rect)) {
       if (selectedId === null) {
-        if (mode === 'Transform') {
+        if (mode === 'Classificar') {
           const stage = e.target.getStage()
           const pointer = stage.getPointerPosition()
           if (!pointer) return
@@ -263,9 +263,9 @@ const BBoxCanvas = (props: BBoxCanvasLayerProps) => {
                 scale={scale}
                 strokeWidth={strokeWidth}
                 showLabel={showLabels}
-                isSelected={mode === 'Transform' && rect.id === selectedId}
+                isSelected={mode === 'Classificar' && rect.id === selectedId}
                 onClick={() => {
-                  if (mode === 'Transform') {
+                  if (mode === 'Classificar') {
                     setSelectedId(rect.id);
                     const rects = rectangles.slice();
                     const lastIndex = rects.length - 1;
@@ -274,7 +274,7 @@ const BBoxCanvas = (props: BBoxCanvasLayerProps) => {
                     rects[i] = lastItem;
                     setRectangles(rects);
                     setLabel(rect.label)
-                  } else if (mode === 'Del') {
+                  } else if (mode === 'Deletar') {
                     const rects = rectangles.slice();
                     setRectangles(rects.filter((element) => element.id !== rect.id));
                   }

@@ -64,7 +64,7 @@ const Detection = ({ args, theme }: ComponentProps) => {
     }));
   const [selectedId, setSelectedId] = React.useState<string | null>(null);
   const [label, setLabel] = useState(label_list[0])
-  const [mode, setMode] = React.useState<string>('Transform');
+  const [mode, setMode] = React.useState<string>('Classificar');
 
   const handleClassSelectorChange = (value: string) => {
     setLabel(value)
@@ -137,7 +137,7 @@ const Detection = ({ args, theme }: ComponentProps) => {
               <Text fontSize='sm' mb={2}>Mode</Text>
               <RadioGroup value={mode} onChange={setMode}>
                 <Stack direction="column" spacing={2}>
-                  {['Transform', 'Del'].map((m) => (
+                  {['Classificar', 'Deletar'].map((m) => (
                     <Radio key={m} value={m} size="sm">
                       {m}
                     </Radio>
@@ -177,7 +177,7 @@ const Detection = ({ args, theme }: ComponentProps) => {
                   Streamlit.setComponentValue(currentBboxValue)
                 }}
               >
-                Complete
+                Calcular
               </Button>
             </Box>
           </HStack>

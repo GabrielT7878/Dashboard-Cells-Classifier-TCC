@@ -1,5 +1,16 @@
 import streamlit as st
 import cv2
+import uuid
+
+st.set_page_config(initial_sidebar_state="collapsed")
+
+st.header("Classificador de Células em Mitose")
+st.subheader("Faça o upload de imagens de células ou use as imagens de exemplo clicando no botão abaixo")
+
+if st.button("Usar Imagens exemplo"):
+    st.session_state['example_images'] = True
+    st.switch_page("./pages/detection.py")
+
 
 files = st.file_uploader("input images", accept_multiple_files=True)
 
@@ -18,8 +29,11 @@ if st.button("Continuar"):
 
     if files:
         for i, image in enumerate(files):
-            with open(f"uploaded_images/{image.name}", "wb") as f:
+            images_path = f"./uploaded_images/{str(uuid.uuid4())}"
+            with open(f"{images_path}/{image.name}", "wb") as f:
                 f.write(image.read())
+        st.session_state['example_images'] = False
+        st.session_state['images_path'] = images_path
         st.switch_page("./pages/detection.py")
     else:
         st.subheader("No Images Uploaded!")
